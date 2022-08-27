@@ -1,4 +1,6 @@
+import os
 import requests
+from dotenv import load_dotenv
 from terminaltables import AsciiTable
 
 
@@ -10,11 +12,11 @@ def predict_rub_salary_hh(response):
                 pass
         except TypeError:
             continue
-        if (item["salary"]["from"]) and (item["salary"]["to"]):
+        if item["salary"]["from"] and item["salary"]["to"]:
             salarys.append((item["salary"]["from"] + item["salary"]["to"]) / 2)
-        elif (not item["salary"]["from"]) and (item["salary"]["to"]):
+        elif not item["salary"]["from"] and item["salary"]["to"]:
             salarys.append(item["salary"]["to"] * 0.8)
-        elif (item["salary"]["from"]) and (not item["salary"]["to"]):
+        elif item["salary"]["from"] and not item["salary"]["to"]:
             salarys.append(item["salary"]["from"] * 1.2)
     return int(sum(salarys)), len(salarys)
 
@@ -24,13 +26,13 @@ def predict_rub_salary_sj(response):
     for job in response.json()["objects"]:
         salary_from = job['payment_from']
         salary_to = job['payment_to']
-        if (salary_from == 0) and (salary_to == 0):
+        if not salary_from and not salary_to:
             pass
-        elif (salary_from) and (salary_to):
+        elif salary_from and salary_to:
             salarys.append((salary_from + salary_to) / 2)
-        elif (not salary_from) and (salary_to):
+        elif not salary_from and salary_to:
             salarys.append(salary_to * 0.8)
-        elif (salary_from) and (not salary_to):
+        elif salary_from and not salary_to:
             salarys.append(salary_from * 1.2)
     return int(sum(salarys)), len(salarys)
 
@@ -65,7 +67,7 @@ def write_vacancies_data_hh(languages):
         page = 0
 
 
-def write_vacancies_data_sj(languages):
+def write_vacancies_data_sj(languages, key):
     page = 0
     for vacancy in languages:
         vacancies_found = 0
@@ -73,7 +75,7 @@ def write_vacancies_data_sj(languages):
         average_salary = 0
         while True:
             headers = {
-                    "X-Api-App-Id": "v3.r.136905290.58ef3d98e9579e1dfe51f0c2764bacb575aa91e5.7ac2a7108764b64c3ebd0f220a9f0212407a5c37",
+                    "X-Api-App-Id": key,
                     "Content-Type": "application/x-www-form-urlencoded"
             }
             payload = {
@@ -132,16 +134,18 @@ def get_hh_table(languages):
     create_table(languages, "HeadHunterMoscow")
 
 
-def get_sj_table(languages):
+def get_sj_table(languages, key):
     languages = create_language_json(languages)
-    write_vacancies_data_sj(languages)
+    write_vacancies_data_sj(languages, key)
     create_table(languages, "SuperJobMoscow")
 
 
 def main():
+    load_dotenv()
+    key = os.environ["SJ_KEY"]
     languages = ["Python", "Java"]
     get_hh_table(languages)
-    get_sj_table(languages)
+    get_sj_table(languages, key)
 
 
 if __name__ == "__main__":
