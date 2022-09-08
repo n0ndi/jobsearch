@@ -148,11 +148,20 @@ def main():
     load_dotenv()
     key = os.environ["SJ_KEY"]
     languages = ["Python", "Java"]
-    languages = create_language_json(languages)
-    write_vacancies_stats_sj(languages, key)
-    print(create_table(languages, "SuperJobMoscow"))
-    write_vacancies_stats_hh(languages)
-    print(create_table(languages, "HeadHunterMoscow"))
+    languages_json = {}
+    for language in languages:
+        lang = {
+            language: {
+                "vacancies_found": None,
+                "vacancied_proccessed": None,
+                "average_salary": None
+            }
+        }
+        languages_json.update(lang)
+    write_vacancies_stats_sj(languages_json, key)
+    print(create_table(languages_json, "SuperJobMoscow"))
+    write_vacancies_stats_hh(languages_json)
+    print(create_table(languages_json, "HeadHunterMoscow"))
 
 
 
