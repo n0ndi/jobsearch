@@ -18,8 +18,8 @@ def get_value_salary(salary_to, salary_from):
 
 def predict_rub_salary_hh(response):
     salaries = []
-    vacancies_info = response.json()["items"]
-    for job in vacancies_info:
+    vacancies = response.json()["items"]
+    for job in vacancies:
         try:
             if job["salary"]["currency"] != "RUR":
                 continue
@@ -35,8 +35,8 @@ def predict_rub_salary_hh(response):
 
 def predict_rub_salary_sj(response):
     salaries = []
-    vacancies_info = response.json()["objects"]
-    for job in vacancies_info:
+    vacancies = response.json()["objects"]
+    for job in vacancies:
         salary_from = job['payment_from']
         salary_to = job['payment_to']
         salary = get_value_salary(salary_to, salary_from)
@@ -64,14 +64,14 @@ def write_vacancies_stats_hh(languages):
             url = "https://api.hh.ru/vacancies"
             response = requests.get(url, params=payload)
             response.raise_for_status()
-            vacancies_data = response.json()
-            if not vacancies_data["items"]:
+            vacancies_page = response.json()
+            if not vacancies_page["items"]:
                 break
-            pages_number = vacancies_data["pages"]
-            found_vacancies = vacancies_data["found"]
-            salaries_info, proccessed = predict_rub_salary_hh(response)
+            pages_number = vacancies_page["pages"]
+            found_vacancies = vacancies_page["found"]
+            salaries_per_page, proccessed = predict_rub_salary_hh(response)
             vacancied_proccessed += proccessed
-            average_salary += salaries_info
+            average_salary += salaries_per_page
             page += 1
         languages[language]["vacancies_found"] = found_vacancies
         languages[language]["vacancied_proccessed"] = vacancied_proccessed
@@ -103,11 +103,11 @@ def write_vacancies_stats_sj(languages, key):
             url = "https://api.superjob.ru/2.0/vacancies"
             response = requests.get(url, headers=headers, params=payload)
             response.raise_for_status()
-            vacancies_data = response.json()
-            salaries_info, proccessed = predict_rub_salary_sj(response)
+            vacancies_page = response.json()
+            salaries_per_page, proccessed = predict_rub_salary_sj(response)
             vacancied_proccessed += proccessed
-            average_salary += salaries_info
-            found_vacancies = vacancies_data["total"]
+            average_salary += salaries_per_page
+            found_vacancies = vacancies_page["total"]
             page += 1
             if not response.json()["more"]:
                 break
