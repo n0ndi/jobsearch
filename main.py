@@ -5,43 +5,40 @@ from terminaltables import AsciiTable
 
 
 def get_value_salary(salary_to, salary_from):
-    try:
-        if salary_from and salary_to:
-            return ((salary_from + salary_to) / 2)
-        elif not salary_from and salary_to:
-            return (salary_from * 0.8)
-        elif salary_from and not salary_to:
-            return (salary_from * 1.2)
-    except TypeError:
-        return None
+    if salary_from and salary_to:
+        return ((salary_from + salary_to) / 2)
+    elif salary_to:
+        return (salary_to * 0.8)
+    elif salary_from:
+        return (salary_from * 1.2)
 
 
 def predict_rub_salary_hh(response):
     salaries = []
-    vacancies = response.json()["items"]
+    vacancies = response["items"]
     for job in vacancies:
-        try:
-            if job["salary"]["currency"] != "RUR":
+        if job.get("salary"):
+            if job["salary"].get("currency") != "RUR":
                 continue
-        except TypeError:
+        else:
             continue
         salary_to = job["salary"]["to"]
         salary_from = job["salary"]["from"]
         salary = get_value_salary(salary_to, salary_from)
         if salary:
-            salaries.append(get_value_salary(salary_to, salary_from))
+            salaries.append(salary)
     return int(sum(salaries)), len(salaries)
 
 
 def predict_rub_salary_sj(response):
     salaries = []
-    vacancies = response.json()["objects"]
+    vacancies = response["objects"]
     for job in vacancies:
         salary_from = job['payment_from']
         salary_to = job['payment_to']
         salary = get_value_salary(salary_to, salary_from)
         if salary:
-            salaries.append(get_value_salary(salary_to, salary_from))
+            salaries.append(salary)
     return int(sum(salaries)), len(salaries)
 
 
@@ -69,15 +66,13 @@ def write_vacancies_stats_hh(languages):
                 break
             pages_number = vacancies_page["pages"]
             found_vacancies = vacancies_page["found"]
-            salaries_per_page, proccessed = predict_rub_salary_hh(response)
+            salaries_per_page, proccessed = predict_rub_salary_hh(vacancies_page)
             vacancied_proccessed += proccessed
             average_salary += salaries_per_page
             page += 1
         languages[language]["vacancies_found"] = found_vacancies
         languages[language]["vacancied_proccessed"] = vacancied_proccessed
-        if vacancied_proccessed == 0:
-            pass
-        else:
+        if vacancied_proccessed:
             languages[language]["average_salary"] = int(average_salary / vacancied_proccessed)
         page = 0
 
@@ -104,7 +99,7 @@ def write_vacancies_stats_sj(languages, key):
             response = requests.get(url, headers=headers, params=payload)
             response.raise_for_status()
             vacancies_page = response.json()
-            salaries_per_page, proccessed = predict_rub_salary_sj(response)
+            salaries_per_page, proccessed = predict_rub_salary_sj(vacancies_page)
             vacancied_proccessed += proccessed
             average_salary += salaries_per_page
             found_vacancies = vacancies_page["total"]
@@ -113,7 +108,8 @@ def write_vacancies_stats_sj(languages, key):
                 break
         languages[language]["vacancies_found"] = found_vacancies
         languages[language]["vacancied_proccessed"] = vacancied_proccessed
-        languages[language]["average_salary"] = int(average_salary / vacancied_proccessed)
+        if vacancied_proccessed:
+            languages[language]["average_salary"] = int(average_salary / vacancied_proccessed)
         page = 0
 
 
