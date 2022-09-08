@@ -144,24 +144,16 @@ def create_table(table_data, title):
 
 
 
-def get_hh_table(languages):
-    languages = create_language_json(languages)
-    write_vacancies_stats_hh(languages)
-    print(create_table(languages, "HeadHunterMoscow"))
-
-
-def get_sj_table(languages, key):
-    languages = create_language_json(languages)
-    write_vacancies_stats_sj(languages, key)
-    print(create_table(languages, "SuperJobMoscow"))
-
-
 def main():
     load_dotenv()
     key = os.environ["SJ_KEY"]
     languages = ["Python", "Java"]
-    get_hh_table(languages)
-    get_sj_table(languages, key)
+    languages = create_language_json(languages)
+    write_vacancies_stats_sj(languages, key)
+    print(create_table(languages, "SuperJobMoscow"))
+    write_vacancies_stats_hh(languages)
+    print(create_table(languages, "HeadHunterMoscow"))
+
 
 
 if __name__ == "__main__":
