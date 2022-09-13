@@ -17,7 +17,7 @@ def predict_rub_salary_hh(response):
     salaries = []
     vacancies = response["items"]
     for job in vacancies:
-        if job.get("salary"):
+        if job["salary"]:
             if job["salary"].get("currency") != "RUR":
                 continue
         else:
@@ -123,7 +123,7 @@ def write_vacancies_stats_sj(languages, key):
             average_salary += salaries_per_page
             found_vacancies = vacancies_page["total"]
             page += 1
-            if not response.json()["more"]:
+            if not vacancies_page["more"]:
                 break
         languages_json[language]["vacancies_found"] = found_vacancies
         languages_json[language]["vacancied_proccessed"] = vacancied_proccessed
@@ -134,12 +134,12 @@ def write_vacancies_stats_sj(languages, key):
 
 
 
-def create_table(table_data, title):
+def create_table(table_payload, title):
     table = [
       ["Язык программирования", "Вакансий найдено", "Вакансий обработано", "Средняя зарплата"]
     ]
-    for language in table_data:
-        stat = table_data[language]
+    for language in table_payload:
+        stat = table_payload[language]
         table.append([language, stat["vacancies_found"], stat["vacancied_proccessed"], stat["average_salary"]])
     table_instance = AsciiTable(table, title)
     table_instance.justify_columns[2] = 'right'
