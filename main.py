@@ -43,11 +43,20 @@ def predict_rub_salary_sj(response):
 
 
 def write_vacancies_stats_hh(languages):
+    languages_json = {}
     town_code = 1
     count = 100
     page = 0
     pages_number = 1
     for language in languages:
+        lang = {
+            language: {
+                "vacancies_found": None,
+                "vacancied_proccessed": None,
+                "average_salary": None
+            }
+        }
+        languages_json.update(lang)
         found_vacancies = 0
         vacancied_proccessed = 0
         average_salary = 0
@@ -70,18 +79,28 @@ def write_vacancies_stats_hh(languages):
             vacancied_proccessed += proccessed
             average_salary += salaries_per_page
             page += 1
-        languages[language]["vacancies_found"] = found_vacancies
-        languages[language]["vacancied_proccessed"] = vacancied_proccessed
+        languages_json[language]["vacancies_found"] = found_vacancies
+        languages_json[language]["vacancied_proccessed"] = vacancied_proccessed
         if vacancied_proccessed:
-            languages[language]["average_salary"] = int(average_salary / vacancied_proccessed)
+            languages_json[language]["average_salary"] = int(average_salary / vacancied_proccessed)
         page = 0
+    return languages_json
 
 
 def write_vacancies_stats_sj(languages, key):
+    languages_json = {}
     town_code = 4
     count = 100
     page = 0
     for language in languages:
+        lang = {
+            language: {
+                "vacancies_found": None,
+                "vacancied_proccessed": None,
+                "average_salary": None
+            }
+        }
+        languages_json.update(lang)
         vacancied_proccessed = 0
         average_salary = 0
         while True:
@@ -106,25 +125,13 @@ def write_vacancies_stats_sj(languages, key):
             page += 1
             if not response.json()["more"]:
                 break
-        languages[language]["vacancies_found"] = found_vacancies
-        languages[language]["vacancied_proccessed"] = vacancied_proccessed
+        languages_json[language]["vacancies_found"] = found_vacancies
+        languages_json[language]["vacancied_proccessed"] = vacancied_proccessed
         if vacancied_proccessed:
-            languages[language]["average_salary"] = int(average_salary / vacancied_proccessed)
+            languages_json[language]["average_salary"] = int(average_salary / vacancied_proccessed)
         page = 0
+    return languages_json
 
-
-def create_language_json(list):
-    languages = {}
-    for language in list:
-        lang = {
-            language: {
-                "vacancies_found": None,
-                "vacancied_proccessed": None,
-                "average_salary": None
-            }
-         }
-        languages.update(lang)
-    return languages
 
 
 def create_table(table_data, title):
@@ -144,20 +151,10 @@ def main():
     load_dotenv()
     key = os.environ["SJ_KEY"]
     languages = ["Python", "Java"]
-    languages_json = {}
-    for language in languages:
-        lang = {
-            language: {
-                "vacancies_found": None,
-                "vacancied_proccessed": None,
-                "average_salary": None
-            }
-        }
-        languages_json.update(lang)
-    write_vacancies_stats_sj(languages_json, key)
-    print(create_table(languages_json, "SuperJobMoscow"))
-    write_vacancies_stats_hh(languages_json)
-    print(create_table(languages_json, "HeadHunterMoscow"))
+    languages_stats_sj = write_vacancies_stats_sj(languages, key)
+    print(create_table(languages_stats_sj, "SuperJobMoscow"))
+    languages_stats_hh = write_vacancies_stats_hh(languages)
+    print(create_table(languages_stats_hh, "HeadHunterMoscow"))
 
 
 
