@@ -17,10 +17,9 @@ def predict_rub_salary_hh(response):
     salaries = []
     vacancies = response["items"]
     for job in vacancies:
-        if job["salary"]:
-            if job["salary"].get("currency") != "RUR":
-                continue
-        else:
+        if not job["salary"]:
+            continue
+        if job["salary"].get("currency") != "RUR":
             continue
         salary_to = job["salary"]["to"]
         salary_from = job["salary"]["from"]
@@ -43,20 +42,20 @@ def predict_rub_salary_sj(response):
 
 
 def write_vacancies_stats_hh(languages):
-    languages_json = {}
+    languages_params = {}
     town_code = 1
     count = 100
     page = 0
     pages_number = 1
     for language in languages:
-        lang = {
+        languages_params.update({
             language: {
                 "vacancies_found": None,
                 "vacancied_proccessed": None,
                 "average_salary": None
             }
         }
-        languages_json.update(lang)
+        )
         found_vacancies = 0
         vacancied_proccessed = 0
         average_salary = 0
@@ -79,28 +78,28 @@ def write_vacancies_stats_hh(languages):
             vacancied_proccessed += proccessed
             average_salary += salaries_per_page
             page += 1
-        languages_json[language]["vacancies_found"] = found_vacancies
-        languages_json[language]["vacancied_proccessed"] = vacancied_proccessed
+        languages_params[language]["vacancies_found"] = found_vacancies
+        languages_params[language]["vacancied_proccessed"] = vacancied_proccessed
         if vacancied_proccessed:
-            languages_json[language]["average_salary"] = int(average_salary / vacancied_proccessed)
+            languages_params[language]["average_salary"] = int(average_salary / vacancied_proccessed)
         page = 0
-    return languages_json
+    return languages_params
 
 
 def write_vacancies_stats_sj(languages, key):
-    languages_json = {}
+    languages_params = {}
     town_code = 4
     count = 100
     page = 0
     for language in languages:
-        lang = {
+        languages_params.update({
             language: {
                 "vacancies_found": None,
                 "vacancied_proccessed": None,
                 "average_salary": None
             }
         }
-        languages_json.update(lang)
+        )
         vacancied_proccessed = 0
         average_salary = 0
         while True:
@@ -125,12 +124,12 @@ def write_vacancies_stats_sj(languages, key):
             page += 1
             if not vacancies_page["more"]:
                 break
-        languages_json[language]["vacancies_found"] = found_vacancies
-        languages_json[language]["vacancied_proccessed"] = vacancied_proccessed
+        languages_params[language]["vacancies_found"] = found_vacancies
+        languages_params[language]["vacancied_proccessed"] = vacancied_proccessed
         if vacancied_proccessed:
-            languages_json[language]["average_salary"] = int(average_salary / vacancied_proccessed)
+            languages_params[language]["average_salary"] = int(average_salary / vacancied_proccessed)
         page = 0
-    return languages_json
+    return languages_params
 
 
 
